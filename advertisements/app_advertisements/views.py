@@ -1,28 +1,40 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import Advertisement
 from .forms import AdvertisementsForm
+from django.urls import reverse
 
 def index(request):
     advertisements = Advertisement.objects.all()
     context = {'advertisements': advertisements}
-    return render(request, 'index.html', context)
+    return render(request, 'app_advertisement/index.html', context)
 
 
 def top_sellers(request):
-    return render(request, 'top-sellers.html')
+    return render(request, 'app_advertisement/top-sellers.html')
 
 def register(request):
-    return render(request, 'register.html')
+    return render(request, 'app_auth/register.html')
 
 def advertisement_post(request):
-    form = AdvertisementsForm()
+    if request.method == "POST":
+        form = AdvertisementsForm(request.POST, request.FILES)
+        if form.is_valid():
+            # advertisement = Advertisement(**form.cleaned_data)
+            new_advertisement = form.save(commit=False)
+            new_advertisement.user = request.user
+            new_advertisement.save()
+            url = reverse('main-page')
+            return redirect(url)
+
+    else:
+        form = AdvertisementsForm()
     context = {'form': form}
-    return render(request, 'advertisement-post.html')
+    return render(request, 'app_advertisement/advertisement-post.html', context)
 
 def profile(request):
-    return render(request, 'profile.html')
+    return render(request, 'app_auth/profile.html')
 
 def login(request):
-    return render(request, 'login.html')
+    return render(request, 'app_auth/login.html')
 
