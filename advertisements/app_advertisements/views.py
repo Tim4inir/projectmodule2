@@ -2,11 +2,17 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import Advertisement
 from .forms import AdvertisementsForm
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth.decorators import login_required
 
 def index(request):
-    advertisements = Advertisement.objects.all()
-    context = {'advertisements': advertisements}
+    title = request.GET.get('query')
+    if title:
+        advertisements = Advertisement.objects.filter(title__icontains=title)
+    else:
+        advertisements = Advertisement.objects.all()
+    context = {'advertisements': advertisements,
+               'title': title}
     return render(request, 'app_advertisement/index.html', context)
 
 
@@ -16,6 +22,9 @@ def top_sellers(request):
 def register(request):
     return render(request, 'app_auth/register.html')
 
+
+
+@login_required(login_url=reverse_lazy('profile'))
 def advertisement_post(request):
     if request.method == "POST":
         form = AdvertisementsForm(request.POST, request.FILES)
@@ -32,9 +41,9 @@ def advertisement_post(request):
     context = {'form': form}
     return render(request, 'app_advertisement/advertisement-post.html', context)
 
-def profile(request):
-    return render(request, 'app_auth/profile.html')
 
-def login(request):
-    return render(request, 'app_auth/login.html')
+
+
+
+
 
